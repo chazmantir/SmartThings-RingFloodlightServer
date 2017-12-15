@@ -31,13 +31,12 @@ def parse(description) {
   def logprefix = "[parse] "
   log.debug logprefix + "description: " + description
 
-	def offlineTimeout = 300 //time in seconds before a device is marked offline
+	def offlineTimeout = 3600 //time in seconds before a device is marked offline
    try {
      unschedule("setOffline")
    } catch (e) {
    }
    runIn(offlineTimeout, setOffline)
-
 
   def results = []
   def map = description
