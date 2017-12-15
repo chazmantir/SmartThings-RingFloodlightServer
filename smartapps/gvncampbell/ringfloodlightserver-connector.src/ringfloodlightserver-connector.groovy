@@ -1,5 +1,5 @@
 definition(
-  name: "RingFloodlightServer Local Server Connector",
+  name: "RingFloodlightServer Connector",
   namespace: "GvnCampbell",
   author: "Gavin Campbell",
   description: "Manage RingFloodlightServer devices through a local server.",
