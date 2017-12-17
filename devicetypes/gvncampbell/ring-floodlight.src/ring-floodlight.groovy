@@ -6,29 +6,50 @@ metadata {
     capability "sensor"
     capability "refresh"
     capability "polling"
+    capability "alarm"
     command "motionDetectionOn"
     command "motionDetectionOff"
+    command "sirenOn"
+    command "sirenOff"
     command "refresh"
   }
 
   // UI tile definitions
   tiles {
-    standardTile("light", "device.light", width: 2, height: 2, canChangeIcon: true) {
-      state "off", label: '${name}', action: "light.on", icon: "st.Lighting.light11", backgroundColor: "#ffffff"
-      state "on", label: '${name}', action: "light.off", icon: "st.Lighting.light11", backgroundColor: "#79b821"
+    standardTile("light", "device.light", width: 2, height: 2, canChangeIcon: false) {
+      state "off", label: '${name}', action: "light.on", icon: "st.Lighting.light9", backgroundColor: "#ffffff"
+      state "on", label: '${name}', action: "light.off", icon: "st.Lighting.light9", backgroundColor: "#79b821"
       state "offline", label:'${name}', icon:"st.Lighting.light11", backgroundColor:"#ff0000", defaultState: true
     }
-    standardTile("motion", "device.motion", width: 1, height: 1, canChangeIcon: false, decoration: "flat") {
+    standardTile("motion", "device.motion", width: 1, height: 1, canChangeIcon: false) {
       state "inactive", label: '${name}', icon: "st.motion.motion.inactive", backgroundColor: "#ffffff", action: "motionDetectionOff", defaultState: true
       state "active", label: '${name}', icon: "st.motion.motion.active", backgroundColor: "#79b821", action: "motionDetectionOff"
       state "disabled", label:'${name}', icon:"st.motion.motion.inactive", backgroundColor:"#ff0000", action: "motionDetectionOn"
       state "offline", label:'${name}', icon:"st.motion.motion.inactive", backgroundColor:"#ff0000"
     }
-    standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
+    standardTile("alarm", "device.alarm", width: 1, height: 1, canChangeIcon: false) {
+      state "off", label: '${name}', icon: "st.alarm.beep.beep", backgroundColor: "#ffffff", action: "sirenOn", defaultState: true
+      state "siren", label: '${name}', icon: "st.alarm.beep.beep", backgroundColor: "#79b821", action: "sirenOff"
+      state "offline", label:'${name}', icon:"st.alarm.beep.beep", backgroundColor:"#ff0000"
+    }   
+    standardTile("refresh", "device.switch", inactiveLabel: false, canChangeIcon: false, decoration: "flat") {
       state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
     }
     main(["light"])
-    details(["light", "motion", "motionDetection", "refresh"])  }
+    details(["light", "motion", "motionDetection", "alarm", "refresh"])  }
+}
+
+def sirenOn() {
+  def logprefix = "[sirenOn] "
+  log.debug logprefix + "Executed."
+  parent.sirenOn(this)
+  sendEvent(name: "alarm", value: "siren")
+}
+def sirenOff() {
+  def logprefix = "[sirenOff] "
+  log.debug logprefix + "Executed."
+  parent.sirenOff(this)
+  sendEvent(name: "alarm", value: "off")
 }
 
 def parse(description) {
@@ -112,6 +133,7 @@ def setOffline() {
 	log.trace logprefix + " ====================> Offline."
     sendEvent(name: "light", value: "offline")
     sendEvent(name: "motion", value: "offline")
+    sendEvent(name: "alarm", value: "offline")
     offlineMonitor()
     refresh()
 }
