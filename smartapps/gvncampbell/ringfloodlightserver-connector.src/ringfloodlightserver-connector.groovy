@@ -2,12 +2,12 @@ definition(
   name: "RingFloodlightServer Connector",
   namespace: "GvnCampbell",
   author: "Gavin Campbell",
-  description: "Manage RingFloodlightServer devices through a local server.",
+  description: "Manage Ring Floodlight devices through a local server.",
   category: "SmartThings Labs",
-  iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-  iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-  iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
-
+  iconUrl: "https://cdn.rawgit.com/GvnCampbell/SmartThings-RingFloodlightServer/master/smartapps/gvncampbell/ringfloodlightserver-connector.src/ring.png",
+  iconX2Url: "https://cdn.rawgit.com/GvnCampbell/SmartThings-RingFloodlightServer/master/smartapps/gvncampbell/ringfloodlightserver-connector.src/ring2x.png",
+  iconX3Url: "https://cdn.rawgit.com/GvnCampbell/SmartThings-RingFloodlightServer/master/smartapps/gvncampbell/ringfloodlightserver-connector.src/ring2x.png")
+    
 preferences {
   page(name: "config")
 }
@@ -79,7 +79,6 @@ def initialize() {
 	state.subscribe = false
 	unsubscribe()
 
-
     if (state.devices == null) {
     	state.devices = []
     }
@@ -119,6 +118,7 @@ def locationHandler(evt) {
 				def d = getChildDevice(dni)
 				if (d) {
         			log.trace logprefix + "Child device found."
+                    sendEvent(d.deviceNetworkId, [name: "ping", value: "ok"])
 					if (it.led_status == "on") {
             			log.trace logprefix + " ====================> Switch on."
 						sendEvent(d.deviceNetworkId, [name: "light", value: "on"])
@@ -134,9 +134,20 @@ def locationHandler(evt) {
 						sendEvent(d.deviceNetworkId, [name: "motion", value: "inactive"])
                     }
         		} else {
-        			log.trace logprefix + "Child device not found. Adding."
-                    state.devices.add(it)
-    	    		state.devices.unique()
+        			log.trace logprefix + "Child device not found. Will add if doesn't exist in list."
+                    def foundDevice = false
+                    state.devices.each { existingDevice -> 
+                    	if (existingDevice.id == it.id) { // device already in device list
+                        	foundDevice = true                     
+                        }                        
+                    }
+                    if (foundDevice == false) {
+                    	log.trace logprefix + "    New device added to device list."
+                    	state.devices.add(it)
+    	    			state.devices.unique()
+                    } else {
+                    	log.trace logprefix + "    New device already in device list."
+					}
 				}
         	}
     	} else if (body instanceof java.util.List) {
