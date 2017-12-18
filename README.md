@@ -2,7 +2,7 @@
 
 This will allow you to add and control features of your your Ring floodlight device.  Viewing the stream is still done through the Ring app but you can tie the notifications into other SmartThings related automations.
 
-This requires the installation of a local server running a node script that utilizes the [doorbot] (https://github.com/davglass/doorbot) script to handle communication.
+This requires the installation of a local server running a node script that utilizes the [doorbot](https://github.com/davglass/doorbot) script to handle communication.
 
 Installation:
 * Install doorbot (npm install doorbot -g)
