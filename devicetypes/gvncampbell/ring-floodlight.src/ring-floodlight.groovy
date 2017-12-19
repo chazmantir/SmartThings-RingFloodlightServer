@@ -41,20 +41,20 @@ metadata {
 
 def sirenOn() {
   def logprefix = "[sirenOn] "
-  log.debug logprefix + "Executed."
+  logger logprefix + "Executed."
   parent.sirenOn(this)
   sendEvent(name: "alarm", value: "siren")
 }
 def sirenOff() {
   def logprefix = "[sirenOff] "
-  log.debug logprefix + "Executed."
+  logger logprefix + "Executed."
   parent.sirenOff(this)
   sendEvent(name: "alarm", value: "off")
 }
 
 def parse(description) {
   	def logprefix = "[parse] "
-  	log.debug logprefix + "description: " + description
+  	logger logprefix + "description: " + description
     
 	offlineMonitor()
 
@@ -62,11 +62,11 @@ def parse(description) {
   def map = description
   if (description instanceof String)  {
     map = stringToMap(description)
-    log.debug logprefix + "stringToMap: " + map
+    logger logprefix + "stringToMap: " + map
   }
 
   if (map?.name && map?.value) {
-  	log.debug logprefix + "createEvent"
+  	logger logprefix + "createEvent"
     if (map?.name == "motion" && device.currentValue("motion") == "disabled") {
     } else {
     	results << createEvent(name: "${map?.name}", value: "${map?.value}")
@@ -87,20 +87,20 @@ def off() {
 }
 def motionDetectionOn() {
   def logprefix = "[motionDetectionOn] "
-  log.debug logprefix + "Executed."
+  logger logprefix + "Executed."
   sendEvent(name: "motion", value: "inactive")
   sendEvent(name: "refresh", value: "default")
 }
 
 def motionDetectionOff() {
   def logprefix = "[motionDetectionOff] "
-  log.debug logprefix + "Executed."
+  logger logprefix + "Executed."
   sendEvent(name: "motion", value: "disabled")
 }
 
 def refresh() {
   def logprefix = "[refresh] "
-  log.debug logprefix + "Executed."
+  logger logprefix + "Executed."
   parent.poll()
 }
 
@@ -130,7 +130,7 @@ def offlineMonitor() {
 }
 def setOffline() {
 	def logprefix = "[setOffline] "
-	log.trace logprefix + " ====================> Offline."
+	logger logprefix + " ====================> Offline."
     sendEvent(name: "light", value: "offline")
     sendEvent(name: "motion", value: "offline")
     sendEvent(name: "alarm", value: "offline")
@@ -138,3 +138,9 @@ def setOffline() {
     refresh()
 }
 
+private logger(text) {
+	def loggingToggle = false
+    if (loggingToggle) {
+		logger text
+	}
+}
