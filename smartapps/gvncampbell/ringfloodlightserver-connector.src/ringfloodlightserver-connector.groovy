@@ -42,12 +42,12 @@ def config() {
 
 def doDeviceSync(){
 	def logprefix = "[doDeviceSync] "
-  	//log.trace logprefix + "Starting..."
+  	logger logprefix + "Starting..."
 
 	poll()
 
   	if(!state.subscribe) {
-  		log.trace logprefix + "Subscribing."
+  		logger logprefix + "Subscribing."
     	subscribe(location, null, locationHandler, [filterEvents:false])
     	state.subscribe = true
   	}
@@ -57,24 +57,26 @@ def doDeviceSync(){
 
 def getDevices() {
   def logprefix = "[getDevices] "
-  //log.trace logprefix + "Started..."
-  //log.debug logprefix + "Return: " + state.devices ?: [:]
+  logger logprefix + "Started."
+  logger logprefix + "Return: " + state.devices ?: [:]
   state.devices ?: [:]
 }
 
 def installed() {
-  log.debug "---------------------->> Installed."
+  def logprefix = "[installed] "
+  logger logprefix + "Started."
   initialize()
 }
 
 def updated() {
-  log.debug "---------------------->> Updated."
+  def logprefix = "[updated] "
+  logger logprefix + "Started."
   initialize()
 }
 
 def initialize() {
 	def logprefix = "[initialize] "
-	//log.debug logprefix + "Started..."
+	logger logprefix + "Started."
 
 	state.subscribe = false
 	unsubscribe()
@@ -93,12 +95,14 @@ def initialize() {
 }
 
 def uninstalled() {
+  def logprefix = "[uninstalled] "
+  logger logprefix + "Started."
   unschedule()
 }
 
 def locationHandler(evt) {
 	def logprefix = "[locationHandler] "
-  	//log.debug logprefix + "Starting..."
+  	logger logprefix + "Starting."
 
   	def description = evt.description
   	def hub = evt?.hubId
@@ -108,33 +112,31 @@ def locationHandler(evt) {
 
   	if (parsedEvent.headers && parsedEvent.body && parsedEvent?.data?.service == 'ringfloodlightserver') {
     	def body = new groovy.json.JsonSlurper().parseText(parsedEvent.body)
-    	if (body instanceof java.util.HashMap)
-    	{
-			//POST /devices/ response
-			log.debug logprefix + "Body is a map."
+    	if (body instanceof java.util.HashMap) {
+			logger logprefix + "Body is a Map."
 
 			body.devices.each {
 				def dni = app.id + "/" + it.id
 				def d = getChildDevice(dni)
 				if (d) {
-        			log.trace logprefix + "Child device found."
+        			logger logprefix + "Child device found."
                     sendEvent(d.deviceNetworkId, [name: "ping", value: "ok"])
 					if (it.led_status == "on") {
-            			log.trace logprefix + "Switch on."
+            			logger logprefix + "Switch on."
 						sendEvent(d.deviceNetworkId, [name: "light", value: "on"])
 					} else if (it.led_status == "off") {
-            			log.trace logprefix + "Switch off."
+            			logger logprefix + "Switch off."
 						sendEvent(d.deviceNetworkId, [name: "light", value: "off"])
 					}
                     if (it.motion == "on") {
-            			log.trace logprefix + "Motion on."
+            			logger logprefix + "Motion on."
 						sendEvent(d.deviceNetworkId, [name: "motion", value: "active"])
                     } else if (it.motion == "off") {
-            			log.trace logprefix + "Motion off."
+            			logger logprefix + "Motion off."
 						sendEvent(d.deviceNetworkId, [name: "motion", value: "inactive"])
                     }
         		} else {
-        			log.trace logprefix + "Child device not found. Will add if doesn't exist in list."
+        			logger logprefix + "Child device not found. Will add if doesn't exist in list."
                     def foundDevice = false
                     state.devices.each { existingDevice -> 
                     	if (existingDevice.id == it.id) { // device already in device list
@@ -142,54 +144,49 @@ def locationHandler(evt) {
                         }                        
                     }
                     if (foundDevice == false) {
-                    	log.trace logprefix + "    New device added to device list."
+                    	logger logprefix + "    New device added to device list."
                     	state.devices.add(it)
     	    			state.devices.unique()
                     } else {
-                    	log.trace logprefix + "    New device already in device list."
+                    	logger logprefix + "    New device already in device list."
 					}
 				}
         	}
-    	} else if (body instanceof java.util.List) {
-			//GET /devices response (application/json)
-			log.debug logprefix + "Body is JSON."
-    	} else {
     	}
-  	} else {
   	}
 }
 
 
 
 private def parseEventMessage(Map event) {
-  //def logprefix = "[parseEventMessage Map] "
-  //log.debug logprefix + "Started..."
+  def logprefix = "[parseEventMessage Map] "
+  logger logprefix + "Started."
   return event
 }
 
 def addDevices() {
 	def logprefix = "[addDevices] "
-	//log.trace logprefix + "Started..."
+	logger logprefix + "Started."
 
 	def devices = getDevices()
-	//log.trace logprefix + "devices: " + devices
+	logger logprefix + "devices: " + devices
 
 	state.devices.each {
      	def dni = app.id + "/" + it.id
       	def d = getChildDevice(dni)
       	if(!d) {
         	d = addChildDevice("GvnCampbell", "Ring Floodlight", dni, null, ["label": "${it.description}"])
-        	log.trace logprefix + "Created ${d.displayName} with id $dni"
+        	logger logprefix + "Created ${d.displayName} with id $dni."
         	d.refresh()
       	} else {
-        	log.trace logprefix + "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
+        	logger logprefix + "Found ${d.displayName} with id $dni already exists, type: '$d.typeName'."
       	}
     }
 }
 
 def on(childDevice) {
   	def logprefix = "[on] "
-  	//log.debug logprefix + "Started..."
+  	logger logprefix + "Started..."
 	def un = java.net.URLEncoder.encode(username, "UTF-8")
     def pw = java.net.URLEncoder.encode(password, "UTF-8")
     def id = getId(childDevice)
@@ -198,7 +195,7 @@ def on(childDevice) {
 
 def off(childDevice) {
   	def logprefix = "[off] "
-  	//log.debug logprefix + "Started..."
+  	logger logprefix + "Started..."
 	def un = java.net.URLEncoder.encode(username, "UTF-8")
     def pw = java.net.URLEncoder.encode(password, "UTF-8")
     def id = getId(childDevice)
@@ -206,7 +203,7 @@ def off(childDevice) {
 }
 def sirenOn(childDevice) {
   	def logprefix = "[sirenOn] "
-  	log.debug logprefix + "Started..."
+  	logger logprefix + "Started."
 	def un = java.net.URLEncoder.encode(username, "UTF-8")
     def pw = java.net.URLEncoder.encode(password, "UTF-8")
     def id = getId(childDevice)
@@ -215,7 +212,7 @@ def sirenOn(childDevice) {
 
 def sirenOff(childDevice) {
   	def logprefix = "[sirenOff] "
-  	log.debug logprefix + "Started..."
+  	logger logprefix + "Started."
 	def un = java.net.URLEncoder.encode(username, "UTF-8")
     def pw = java.net.URLEncoder.encode(password, "UTF-8")
     def id = getId(childDevice)
@@ -223,13 +220,13 @@ def sirenOff(childDevice) {
 }
 private getId(childDevice) {
   def logprefix = "[getId] "
-  //log.debug logprefix + "Started..."
+  logger logprefix + "Started."
   return childDevice?.device?.deviceNetworkId.split("/")[-1]
 }
 
 private poll() {
 	def logprefix = "[poll] "
-	//log.trace logprefix + "Started..."
+	logger logprefix + "Started."
 
     def un = java.net.URLEncoder.encode(username, "UTF-8")
     def pw = java.net.URLEncoder.encode(password, "UTF-8")
@@ -245,7 +242,7 @@ private poll() {
 
 private put(path, text, dni, q = "") {
   def logprefix = "[put] "
-  //log.debug logprefix + "Started..."
+  logger logprefix + "Started."
 
   def hubaction = new physicalgraph.device.HubAction([
         method: "PUT",
@@ -253,6 +250,13 @@ private put(path, text, dni, q = "") {
         body: text,
         headers: [ HOST: "$ip:$port", "Content-Type": "application/json" ]]
     )
-    //log.debug logprefix + "hubaction: " + hubaction
+    logger logprefix + "hubaction: " + hubaction
     sendHubCommand(hubaction)
+}
+
+private logger(text) {
+	def loggingToggle = false
+    if (loggingToggle) {
+		log.debug text
+	}
 }
