@@ -44,6 +44,8 @@ def doDeviceSync(){
 	def logprefix = "[doDeviceSync] "
   	logger logprefix + "Starting..."
 
+	runIn(10, doDeviceSync)
+
 	poll()
 
   	if(!state.subscribe) {
@@ -51,8 +53,6 @@ def doDeviceSync(){
     	subscribe(location, null, locationHandler, [filterEvents:false])
     	state.subscribe = true
   	}
-
-    runIn(10, doDeviceSync)
 }
 
 def getDevices() {
@@ -116,6 +116,7 @@ def locationHandler(evt) {
 			logger logprefix + "Body is a Map."
 
 			body.devices.each {
+            	logger logprefix + "it:" + it
 				def dni = app.id + "/" + it.id
 				def d = getChildDevice(dni)
 				if (d) {
@@ -134,6 +135,13 @@ def locationHandler(evt) {
                     } else if (it.motion == "off") {
             			logger logprefix + "Motion off."
 						sendEvent(d.deviceNetworkId, [name: "motion", value: "inactive"])
+                    }
+                    if (it.siren_status.seconds_remaining > 0) {
+                    	logger logprefix + "Siren on."
+                        sendEvent(d.deviceNetworkId, [name: "alarm", value: "siren"])
+                    } else if (it.siren_status.seconds_remaining == 0) {
+                    	logger logprefix + "Siren off."
+                        sendEvent(d.deviceNetworkId, [name: "alarm", value: "off"])                    
                     }
         		} else {
         			logger logprefix + "Child device not found. Will add if doesn't exist in list."
