@@ -141,6 +141,6 @@ def setOffline() {
 private logger(text) {
 	def loggingToggle = false
     if (loggingToggle) {
-		logger text
+		log.debug text
 	}
 }
