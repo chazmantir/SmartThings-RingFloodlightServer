@@ -44,15 +44,13 @@ def doDeviceSync(){
 	def logprefix = "[doDeviceSync] "
   	logger logprefix + "Starting..."
 
-	runIn(10, doDeviceSync)
-
-	poll()
-
   	if(!state.subscribe) {
   		logger logprefix + "Subscribing."
     	subscribe(location, null, locationHandler, [filterEvents:false])
     	state.subscribe = true
   	}
+        
+	poll()
 }
 
 def getDevices() {
@@ -239,6 +237,8 @@ private poll() {
     def un = java.net.URLEncoder.encode(username, "UTF-8")
     def pw = java.net.URLEncoder.encode(password, "UTF-8")
 	put("", "", "", "?u=${un}&p=${pw}")
+    
+    deviceMonitor()
 }
 
 
@@ -263,8 +263,13 @@ private put(path, text, dni, q = "") {
 }
 
 private logger(text) {
-	def loggingToggle = false
+	def loggingToggle = true
     if (loggingToggle) {
 		log.debug text
 	}
+}
+
+private deviceMonitor() {
+	try { unschedule("doDeviceSync") } catch (e) { }    
+    runIn(10, doDeviceSync)
 }
